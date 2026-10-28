@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { birthdayContent } from "../content/birthdayContent";
+import { cinematicContent } from "../content/cinematicContent";
 import { HeartStars } from "./HeartStars";
 
 function ordinal(age: number) {
@@ -8,29 +9,55 @@ function ordinal(age: number) {
   return `${age}${["th", "st", "nd", "rd"][age % 10] || "th"}`;
 }
 
-export function BirthdayFinale({ onReturn, motionOff }: { onReturn: () => void; motionOff: boolean }) {
+export function BirthdayFinale({
+  onReturn,
+  onReplay,
+  motionOff,
+}: {
+  onReturn: () => void;
+  onReplay: () => void;
+  motionOff: boolean;
+}) {
   const { nickname, age, birthdayLabel, finaleMessage } = birthdayContent;
+  const { wish, replayLabel, returnLabel } = cinematicContent.finale;
+  const [lit, setLit] = useState(motionOff);
+
+  useEffect(() => {
+    if (motionOff) {
+      setLit(true);
+      return;
+    }
+    const timer = window.setTimeout(() => setLit(true), 900);
+    return () => window.clearTimeout(timer);
+  }, [motionOff]);
 
   return (
-    <section className="screen finale" aria-label="Birthday celebration">
-      <Fireworks play={!motionOff} />
+    <section className={lit ? "screen finale is-lit" : "screen finale is-dim"} aria-label="Birthday celebration">
+      <div className="finale-drift" aria-hidden="true" />
+      <Fireworks play={!motionOff && lit} />
       <div className="finale-content">
         <HeartStars className="finale-heart" />
         <h1 className="finale-title">
           Happy {ordinal(age)} Birthday, {nickname}
         </h1>
         <p className="for-line">{birthdayLabel}</p>
-        <Cake age={age} />
+        <Cake age={age} lit={lit} motionOff={motionOff} />
+        <p className="finale-wish">{wish}</p>
         {finaleMessage ? <p className="finale-note">{finaleMessage}</p> : null}
-        <button type="button" className="revisit" onClick={onReturn}>
-          Revisit the galaxy
-        </button>
+        <div className="finale-actions">
+          <button type="button" className="revisit" onClick={onReturn}>
+            {returnLabel}
+          </button>
+          <button type="button" className="enter" onClick={onReplay}>
+            {replayLabel}
+          </button>
+        </div>
       </div>
     </section>
   );
 }
 
-function Cake({ age }: { age: number }) {
+function Cake({ age, lit, motionOff }: { age: number; lit: boolean; motionOff: boolean }) {
   const candles = Array.from({ length: age }, (_, index) => {
     const t = age === 1 ? 0.5 : index / (age - 1);
     const x = 36 + t * 208;
@@ -39,7 +66,7 @@ function Cake({ age }: { age: number }) {
   });
 
   return (
-    <svg className="cake" viewBox="0 0 280 200" role="img" aria-label={`Birthday cake with ${age} candles`}>
+    <svg className={lit ? "cake is-lit" : "cake"} viewBox="0 0 280 200" role="img" aria-label={`Birthday cake with ${age} candles`}>
       <ellipse cx="140" cy="178" rx="96" ry="12" fill="#241c44" />
       <rect x="62" y="118" width="156" height="54" rx="10" fill="#f3c1d3" />
       <rect x="82" y="90" width="116" height="40" rx="10" fill="#fbe7ef" />
@@ -47,7 +74,13 @@ function Cake({ age }: { age: number }) {
       {candles.map((candle) => (
         <g key={candle.index}>
           <line x1={candle.x} y1={candle.y} x2={candle.x} y2={candle.y - 14} stroke="#f8e7c4" strokeWidth="1.25" />
-          <circle className="flame" cx={candle.x} cy={candle.y - 16} r="2.2" style={{ animationDelay: `${(candle.index % 7) * 0.12}s` }} />
+          <circle
+            className={motionOff ? "flame is-still" : "flame"}
+            cx={candle.x}
+            cy={candle.y - 16}
+            r="2.2"
+            style={{ animationDelay: `${candle.index * 0.05}s` }}
+          />
         </g>
       ))}
       <text x="140" y="154" textAnchor="middle" fill="#6d3148" fontSize="30" fontFamily="Cormorant Garamond, Palatino, serif">

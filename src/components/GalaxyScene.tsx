@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { birthdayContent, worldCopy } from "../content/birthdayContent";
+import { cinematicContent } from "../content/cinematicContent";
 import { discoveredWorlds, finaleUnlocked, WORLD_ORDER, type PlanetId } from "../lib/progress";
 
 const LAYOUT: Record<PlanetId, { x: string; y: string; delay: string }> = {
@@ -15,10 +16,12 @@ export function GalaxyScene({
   opened,
   lockedAway,
   onOpen,
+  onOpenTrailer,
 }: {
   opened: ReadonlySet<PlanetId>;
   lockedAway: boolean;
   onOpen: (id: PlanetId) => void;
+  onOpenTrailer: () => void;
 }) {
   const ref = useRef<HTMLElement>(null);
   const [secretOpen, setSecretOpen] = useState(false);
@@ -75,6 +78,11 @@ export function GalaxyScene({
             </button>
           );
         })}
+      </div>
+      <div className="galaxy-actions">
+        <button type="button" className="enter story-btn" onClick={onOpenTrailer}>
+          {cinematicContent.trailer.galleryButton}
+        </button>
       </div>
       <div className="secret">
         <button

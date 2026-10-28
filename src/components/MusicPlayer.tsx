@@ -1,35 +1,11 @@
 import { Music, Pause } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { birthdayContent } from "../content/birthdayContent";
+import { useEffect, useRef } from "react";
+import { useUniverseAudio } from "../audio/UniverseAudio";
 
-type PlayState = "idle" | "playing" | "paused" | "ended" | "error";
-
-export function MusicPlayer() {
-  const audioRef = useRef<HTMLAudioElement>(null);
+export function MusicPlayer({ hidden = false }: { hidden?: boolean }) {
+  const audio = useUniverseAudio();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioGraph = useRef<{
-    context: AudioContext;
-    analyser: AnalyserNode;
-    source: MediaElementAudioSourceNode;
-  } | null>(null);
   const rafRef = useRef(0);
-  const [playState, setPlayState] = useState<PlayState>("idle");
-  const [note, setNote] = useState("");
-  const [visualReady, setVisualReady] = useState(false);
-  const src = birthdayContent.audio.musicSrc;
-  const label = birthdayContent.audio.musicLabel?.trim() || "Music";
-  const playing = playState === "playing";
-
-  useEffect(() => {
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      // Keep the shared graph alive only for this player instance; close on unmount.
-      if (audioGraph.current) {
-        void audioGraph.current.context.close().catch(() => undefined);
-        audioGraph.current = null;
-      }
-    };
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -52,12 +28,11 @@ export function MusicPlayer() {
     const draw = () => {
       const { width, height } = canvas;
       ctx.clearRect(0, 0, width, height);
-      const graph = audioGraph.current;
-      if (!graph || playState !== "playing" || reduce) {
+      const live = audio.playing && !reduce && audio.readLevels(data);
+      if (!live) {
         paintStatic();
         return;
       }
-      graph.analyser.getByteFrequencyData(data);
       for (let i = 0; i < bars; i += 1) {
         const level = data[i] / 255;
         const h = Math.max(height * 0.12, level * height * 0.9);
@@ -67,100 +42,33 @@ export function MusicPlayer() {
     };
 
     cancelAnimationFrame(rafRef.current);
-    if (playState === "playing" && visualReady && !reduce) {
-      rafRef.current = requestAnimationFrame(draw);
-    } else {
-      paintStatic();
-    }
-
+    if (audio.playing && !reduce) rafRef.current = requestAnimationFrame(draw);
+    else paintStatic();
     return () => cancelAnimationFrame(rafRef.current);
-  }, [playState, visualReady]);
+  }, [audio.playing, audio.readLevels]);
 
-  async function ensureAnalyser(audio: HTMLAudioElement) {
-    if (audioGraph.current) {
-      if (audioGraph.current.context.state === "suspended") {
-        await audioGraph.current.context.resume();
-      }
-      return true;
-    }
-    const AudioCtx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return false;
-    try {
-      const context = new AudioCtx();
-      const analyser = context.createAnalyser();
-      analyser.fftSize = 64;
-      analyser.smoothingTimeConstant = 0.78;
-      const source = context.createMediaElementSource(audio);
-      source.connect(analyser);
-      analyser.connect(context.destination);
-      audioGraph.current = { context, analyser, source };
-      if (context.state === "suspended") await context.resume();
-      setVisualReady(true);
-      return true;
-    } catch {
-      setVisualReady(false);
-      return false;
-    }
-  }
-
-  async function toggle() {
-    if (!src) {
-      setPlayState("error");
-      setNote("No song has been added yet.");
-      return;
-    }
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (!audio.paused) {
-      audio.pause();
-      setPlayState("paused");
-      setNote("");
-      return;
-    }
-    try {
-      await ensureAnalyser(audio);
-      await audio.play();
-      setPlayState("playing");
-      setNote("");
-    } catch {
-      setPlayState("error");
-      setNote("Playback did not start. Press the button again.");
-    }
-  }
+  if (hidden) return null;
 
   return (
     <div className="music">
-      {src ? (
-        <audio
-          ref={audioRef}
-          src={encodeURI(src)}
-          loop
-          preload="none"
-          onPlay={() => setPlayState("playing")}
-          onPause={() => setPlayState(audioRef.current?.ended ? "ended" : "paused")}
-          onEnded={() => setPlayState("ended")}
-          onError={() => {
-            setPlayState("error");
-            setNote("That audio file could not be played.");
-          }}
-        />
-      ) : null}
       <div className="music-shell">
         <canvas ref={canvasRef} className="music-viz" width={120} height={28} aria-hidden="true" />
         <button
           type="button"
           className="music-btn"
-          aria-pressed={playing}
-          aria-label={playing ? `Pause ${label}` : `Play ${label}`}
-          onClick={() => void toggle()}
+          aria-pressed={audio.playing}
+          aria-label={audio.playing ? `Pause ${audio.label}` : `Play ${audio.label}`}
+          onClick={() => void audio.toggle()}
         >
-          {playing ? <Pause size={18} /> : <Music size={18} />}
-          <span>{playing ? label : `${label} · Off`}</span>
+          {audio.playing ? <Pause size={18} /> : <Music size={18} />}
+          <span>
+            {audio.ended ? `${audio.label} · Ended` : audio.playing ? audio.label : `${audio.label} · Off`}
+          </span>
         </button>
       </div>
-      {note ? (
+      {audio.note ? (
         <p className="music-note" role="status">
-          {note}
+          {audio.note}
         </p>
       ) : null}
     </div>

@@ -969,13 +969,243 @@ button {
   width: min(20rem, 86vw);
   height: auto;
   margin-top: 0.4rem;
+  opacity: 0.55;
+  transition: opacity 1.2s ease;
+}
+
+.cake.is-lit {
+  opacity: 1;
 }
 
 .flame {
   fill: #ffe1a8;
+  opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  animation: flicker 1.4s ease-in-out infinite;
+}
+
+.cake.is-lit .flame {
+  animation: candle-lit 0.6s ease forwards, flicker 1.4s ease-in-out infinite;
+}
+
+.cake.is-lit .flame.is-still {
+  opacity: 1;
+  animation: none;
+}
+
+.finale.is-dim .finale-content {
+  filter: brightness(0.72);
+}
+
+.finale.is-lit .finale-content {
+  filter: none;
+}
+
+.finale-drift {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(243, 193, 211, 0.16), transparent 42%);
+  pointer-events: none;
+}
+
+.finale-wish {
+  max-width: 28rem;
+  margin: 1rem 0 0;
+  font-family: "Cormorant Garamond", Palatino, Georgia, serif;
+  font-size: clamp(1.25rem, 3vw, 1.7rem);
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.finale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.2rem;
+}
+
+.galaxy-actions {
+  margin-top: 0.75rem;
+}
+
+.story-btn {
+  margin-top: 0;
+}
+
+.cinema {
+  justify-content: center;
+  background: #05040f;
+  overflow: hidden;
+}
+
+.cinema-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.cinema-haze {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(92, 58, 158, 0.22), transparent 45%),
+    radial-gradient(circle at 70% 60%, rgba(156, 64, 104, 0.14), transparent 42%);
+}
+
+.cinema-haze-live {
+  animation: cinema-drift 24s ease-in-out infinite;
+}
+
+.cinema.is-leaving .cinema-stage {
+  animation: cinema-dive 0.9s ease forwards;
+}
+
+.cinema.is-leaving .cinema-canvas {
+  animation: cinema-dive 0.9s ease forwards;
+}
+
+.cinema-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  width: min(100%, 40rem);
+  text-align: center;
+}
+
+.cinema-line {
+  margin: 0;
+  min-height: 3.5rem;
+  font-family: "Cormorant Garamond", Palatino, Georgia, serif;
+  font-size: clamp(1.45rem, 4vw, 2.2rem);
+  font-style: italic;
+  line-height: 1.35;
+  text-shadow: 0 0 24px rgba(196, 181, 253, 0.35);
+  animation: cinema-rise 1.15s ease;
+}
+
+.cinema-title {
+  margin: 0;
+  font-family: "Cormorant Garamond", Palatino, Georgia, serif;
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  font-weight: 500;
+  line-height: 0.95;
+  text-shadow: 0 0 36px rgba(232, 201, 138, 0.35);
+  animation: cinema-title-in 1.35s ease;
+}
+
+.cinema-chapter {
+  animation: cinema-fade 1.4s ease 0.25s both;
+}
+
+.cinema-enter {
+  animation: cinema-fade 1s ease 0.2s both;
+}
+
+.cinema-skip {
+  margin-top: 0.5rem;
+}
+
+.cinema-audio {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 55;
+}
+
+.cinema-still .cinema-haze-live {
+  animation: none;
+}
+
+.trailer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  background: #05040f;
+}
+
+.trailer-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.trailer-photo {
+  width: min(100%, 1100px);
+  height: min(78vh, 760px);
+  object-fit: contain;
+  background: #000;
+}
+
+.trailer-photo.ken-0 { animation: ken-a 4.2s ease-in-out both; }
+.trailer-photo.ken-1 { animation: ken-b 4.2s ease-in-out both; }
+.trailer-photo.ken-2 { animation: ken-c 4.2s ease-in-out both; }
+.trailer-photo.ken-3 { animation: ken-d 4.2s ease-in-out both; }
+.trailer-photo.is-still { animation: none; }
+
+.trailer-caption,
+.trailer-count,
+.trailer-end {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  text-align: center;
+}
+
+.trailer-caption {
+  bottom: 1.4rem;
+  width: min(90%, 36rem);
+  font-family: "Cormorant Garamond", Palatino, Georgia, serif;
+  font-size: 1.35rem;
+  color: #f6f1ea;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.8);
+}
+
+.trailer-count {
+  top: 1rem;
+  color: #e8c98a;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.trailer-end {
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(90%, 28rem);
+  font-family: "Cormorant Garamond", Palatino, Georgia, serif;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.trailer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.75rem 1rem;
+}
+
+.trailer-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.trailer-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #c4b5fd, #f3c1d3);
 }
 
 .fx {
@@ -1093,6 +1323,54 @@ button {
 
 @keyframes flicker {
   50% { opacity: 0.45; }
+}
+
+@keyframes candle-lit {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cinema-fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cinema-rise {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cinema-title-in {
+  from { opacity: 0; transform: scale(0.92); letter-spacing: 0.08em; }
+  to { opacity: 1; transform: scale(1); letter-spacing: normal; }
+}
+
+@keyframes cinema-dive {
+  to { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes cinema-drift {
+  50% { transform: scale(1.06) translate3d(-1vw, 1vh, 0); }
+}
+
+@keyframes ken-a {
+  from { transform: scale(1.05) translate3d(-1%, 0, 0); }
+  to { transform: scale(1.12) translate3d(1%, -1%, 0); }
+}
+
+@keyframes ken-b {
+  from { transform: scale(1.08) translate3d(1%, 1%, 0); }
+  to { transform: scale(1.14) translate3d(-1%, 0, 0); }
+}
+
+@keyframes ken-c {
+  from { transform: scale(1.04) translate3d(0, 1%, 0); }
+  to { transform: scale(1.11) translate3d(0, -1%, 0); }
+}
+
+@keyframes ken-d {
+  from { transform: scale(1.06) translate3d(-1%, -1%, 0); }
+  to { transform: scale(1.13) translate3d(1%, 1%, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

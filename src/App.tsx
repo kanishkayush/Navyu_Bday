@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { UniverseAudioProvider } from "./audio/UniverseAudio";
 import { worldCopy } from "./content/birthdayContent";
 import { BirthdayFinale } from "./components/BirthdayFinale";
+import { CinematicOpening } from "./components/CinematicOpening";
 import { CountdownScreen } from "./components/CountdownScreen";
 import { GalaxyScene } from "./components/GalaxyScene";
-import { IntroScreen } from "./components/IntroScreen";
+import { MemoryTrailer } from "./components/MemoryTrailer";
 import { MusicPlayer } from "./components/MusicPlayer";
 import { PlanetBody } from "./components/PlanetStage";
 import { PlanetShell } from "./components/PlanetShell";
@@ -14,23 +16,34 @@ import { discoverMemory } from "./lib/constellation";
 import { createClock } from "./lib/unlock";
 import { finaleUnlocked, type PlanetId } from "./lib/progress";
 
+type Screen = "cinema" | "universe";
+
 export default function App() {
+  return (
+    <UniverseAudioProvider>
+      <AppExperience />
+    </UniverseAudioProvider>
+  );
+}
+
+function AppExperience() {
   const reduce = useReducedMotion() === true;
   const getNow = useMemo(() => createClock(), []);
   const remaining = useBirthdayGate(getNow);
   const [gateOpen, setGateOpen] = useState(false);
-  const [screen, setScreen] = useState<"intro" | "universe">("intro");
+  const [screen, setScreen] = useState<Screen>("cinema");
   const [open, setOpen] = useState<PlanetId | null>(null);
   const [finale, setFinale] = useState(false);
+  const [trailer, setTrailer] = useState(false);
   const [opened, setOpened] = useState<Set<PlanetId>>(() => new Set());
   const [found, setFound] = useState<Set<number>>(() => new Set());
   const [discoveredMemories, setDiscoveredMemories] = useState<Set<string>>(() => new Set());
 
   const fade = {
-    initial: reduce ? false : { opacity: 0, y: 12 },
-    animate: { opacity: 1, y: 0 },
-    exit: reduce ? undefined : { opacity: 0 },
-    transition: { duration: 0.45, ease: "easeOut" as const },
+    initial: reduce ? false : { opacity: 0, scale: 1.04 },
+    animate: { opacity: 1, scale: 1 },
+    exit: reduce ? undefined : { opacity: 0, scale: 0.98 },
+    transition: { duration: 0.7, ease: "easeOut" as const },
   };
 
   function markOpened(id: PlanetId) {
@@ -70,7 +83,12 @@ export default function App() {
   }, []);
 
   let stage = (
-    <GalaxyScene opened={opened} lockedAway={open !== null} onOpen={openPlanet} />
+    <GalaxyScene
+      opened={opened}
+      lockedAway={open !== null || trailer}
+      onOpen={openPlanet}
+      onOpenTrailer={() => setTrailer(true)}
+    />
   );
   let stageKey = "galaxy";
   if (!gateOpen) {
@@ -79,23 +97,45 @@ export default function App() {
         remaining={remaining}
         onEnter={() => {
           setGateOpen(true);
-          setScreen("intro");
+          setScreen("cinema");
+          setFinale(false);
+          setTrailer(false);
         }}
       />
     );
     stageKey = remaining.unlocked ? "countdown-open" : "countdown-locked";
-  } else if (screen === "intro") {
-    stage = <IntroScreen onEnter={() => setScreen("universe")} />;
-    stageKey = "intro";
+  } else if (screen === "cinema") {
+    stage = (
+      <CinematicOpening
+        reduceMotion={reduce}
+        onEnter={() => {
+          setScreen("universe");
+          setFinale(false);
+        }}
+      />
+    );
+    stageKey = "cinema";
   } else if (finale) {
-    stage = <BirthdayFinale motionOff={reduce} onReturn={() => setFinale(false)} />;
+    stage = (
+      <BirthdayFinale
+        motionOff={reduce}
+        onReturn={() => setFinale(false)}
+        onReplay={() => {
+          setFinale(false);
+          setOpen(null);
+          setTrailer(false);
+          setScreen("cinema");
+        }}
+      />
+    );
     stageKey = "finale";
   }
 
   return (
     <>
       <Sky />
-      {gateOpen ? <MusicPlayer /> : null}
+      {/* Keep the player mounted after unlock so visualiser state is stable; hide during cinema/trailer UI. */}
+      {gateOpen ? <MusicPlayer hidden={screen === "cinema" || trailer} /> : null}
       <AnimatePresence mode="wait">
         <motion.div key={stageKey} {...fade}>
           {stage}
@@ -128,6 +168,7 @@ export default function App() {
           </motion.div>
         ) : null}
       </AnimatePresence>
+      {gateOpen && trailer ? <MemoryTrailer reduceMotion={reduce} onClose={() => setTrailer(false)} /> : null}
     </>
   );
 }
