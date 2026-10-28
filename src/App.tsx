@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { worldCopy } from "./content/birthdayContent";
 import { BirthdayFinale } from "./components/BirthdayFinale";
@@ -10,6 +10,7 @@ import { PlanetBody } from "./components/PlanetStage";
 import { PlanetShell } from "./components/PlanetShell";
 import { Sky } from "./components/Sky";
 import { useBirthdayGate } from "./hooks/useBirthdayGate";
+import { discoverMemory } from "./lib/constellation";
 import { createClock } from "./lib/unlock";
 import { finaleUnlocked, type PlanetId } from "./lib/progress";
 
@@ -23,6 +24,7 @@ export default function App() {
   const [finale, setFinale] = useState(false);
   const [opened, setOpened] = useState<Set<PlanetId>>(() => new Set());
   const [found, setFound] = useState<Set<number>>(() => new Set());
+  const [discoveredMemories, setDiscoveredMemories] = useState<Set<string>>(() => new Set());
 
   const fade = {
     initial: reduce ? false : { opacity: 0, y: 12 },
@@ -59,6 +61,13 @@ export default function App() {
       return next;
     });
   }
+
+  const discoverPhoto = useCallback((id: string) => {
+    setDiscoveredMemories((prev) => {
+      const next = discoverMemory(prev, id);
+      return next === prev ? prev : new Set(next);
+    });
+  }, []);
 
   let stage = (
     <GalaxyScene opened={opened} lockedAway={open !== null} onOpen={openPlanet} />
@@ -104,10 +113,17 @@ export default function App() {
             <PlanetShell
               title={worldCopy[open].name}
               kicker={worldCopy[open].description}
-              wide={open === "reasons"}
+              wide={open === "reasons" || open === "memories"}
               onClose={() => setOpen(null)}
             >
-              <PlanetBody id={open} opened={opened} found={found} onDiscover={discover} />
+              <PlanetBody
+                id={open}
+                opened={opened}
+                found={found}
+                onDiscover={discover}
+                discoveredMemories={discoveredMemories}
+                onDiscoverMemory={discoverPhoto}
+              />
             </PlanetShell>
           </motion.div>
         ) : null}

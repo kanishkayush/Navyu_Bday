@@ -9,13 +9,19 @@ export function PlanetBody({
   opened,
   found,
   onDiscover,
+  discoveredMemories,
+  onDiscoverMemory,
 }: {
   id: PlanetId;
   opened: ReadonlySet<PlanetId>;
   found: ReadonlySet<number>;
   onDiscover: (index: number) => void;
+  discoveredMemories: ReadonlySet<string>;
+  onDiscoverMemory: (id: string) => void;
 }) {
-  if (id === "memories") return <MemoryGallery />;
+  if (id === "memories") {
+    return <MemoryGallery discovered={discoveredMemories} onDiscover={onDiscoverMemory} />;
+  }
   if (id === "reasons") return <LoveReasons found={found} onDiscover={onDiscover} />;
   if (id === "letter") return <LoveLetter />;
   return <LockedChapter opened={opened} />;

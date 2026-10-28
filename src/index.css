@@ -213,7 +213,7 @@ button {
 .reason-card p:last-child,
 .celebrate,
 .envelope-label,
-.polaroid span {
+.viewer-caption {
   font-family: "Cormorant Garamond", Palatino, Georgia, serif;
 }
 
@@ -511,6 +511,23 @@ button {
   gap: 0.4rem;
 }
 
+.music-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  padding: 0.45rem 0.5rem 0.5rem;
+  border: 1px solid rgba(232, 201, 138, 0.28);
+  border-radius: 18px;
+  background: rgba(7, 6, 20, 0.72);
+}
+
+.music-viz {
+  display: block;
+  width: 7.5rem;
+  height: 1.75rem;
+}
+
 .music-btn {
   display: inline-flex;
   align-items: center;
@@ -601,73 +618,156 @@ button {
   justify-items: center;
 }
 
-.scrapbook {
+.constellation-root {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.85rem 0.7rem;
-  margin: 0.4rem 0 0;
-  padding: 0;
-  list-style: none;
-  align-items: start;
+  gap: 0.8rem;
 }
 
-.scrap-item,
-.scrap-text {
-  margin: 0;
-}
-
-.polaroid {
-  display: block;
+.constellation-stage {
+  position: relative;
   width: 100%;
-  padding: 0.45rem 0.45rem 0.7rem;
+  min-height: min(62vh, 34rem);
+  border: 1px solid rgba(196, 181, 253, 0.22);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(243, 193, 211, 0.12), transparent 42%),
+    radial-gradient(circle at 20% 20%, rgba(196, 181, 253, 0.16), transparent 40%),
+    rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+
+.constellation-stage.is-complete {
+  box-shadow: inset 0 0 48px rgba(243, 193, 211, 0.18);
+}
+
+.constellation-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.constellation-line {
+  stroke: rgba(232, 201, 138, 0.14);
+  stroke-width: 0.35;
+}
+
+.constellation-line.is-lit {
+  stroke: rgba(243, 193, 211, 0.72);
+  stroke-width: 0.45;
+}
+
+.constellation-star {
+  position: absolute;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
   border: 0;
-  background: #f7f3ec;
-  color: #2a2233;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
-  text-align: left;
+  padding: 0;
+  background: transparent;
+  transform: translate(-50%, -50%);
   cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.polaroid:hover {
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+.constellation-dot {
+  width: var(--star-size, 0.95rem);
+  height: var(--star-size, 0.95rem);
+  border-radius: 50%;
+  border: 1.5px solid rgba(232, 201, 138, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 10px rgba(232, 201, 138, 0.25);
 }
 
-.polaroid img,
-.viewer img {
+.constellation-star.is-found .constellation-dot {
+  background: #e8c98a;
+  box-shadow: 0 0 16px rgba(232, 201, 138, 0.9);
+}
+
+.constellation-star.is-active .constellation-dot {
+  box-shadow: 0 0 0 4px rgba(243, 193, 211, 0.28), 0 0 22px rgba(243, 193, 211, 0.85);
+}
+
+.constellation-star:not(.is-still) .constellation-dot {
+  animation: twinkle 3.4s ease-in-out infinite;
+}
+
+.constellation-done {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.9rem;
+  left: 1rem;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+.memory-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(7, 6, 20, 0.82);
+}
+
+.memory-panel {
+  width: min(100%, 34rem);
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+  border: 1px solid rgba(196, 181, 253, 0.28);
+  border-radius: 18px;
+  background: #120f24;
+  padding: 1rem 1rem 1.15rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+.memory-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.icon-btn {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid rgba(232, 201, 138, 0.4);
+  border-radius: 999px;
+  background: transparent;
+  color: #f6f1ea;
+  cursor: pointer;
+}
+
+.memory-photo {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  background: #e8e2d8;
+  max-height: min(58vh, 28rem);
+  margin: 0 auto;
+  object-fit: contain;
+  background: #0a0816;
+  border-radius: 10px;
 }
 
-.scrap-item.wide .polaroid img {
-  aspect-ratio: 4 / 3;
-}
-
-.scrap-item.tall .polaroid img {
-  aspect-ratio: 2 / 3;
-}
-
-.viewer {
+.memory-fallback {
   display: grid;
-  justify-items: start;
-  gap: 0.35rem;
-}
-
-.viewer img {
-  width: auto;
-  max-width: 100%;
-  max-height: min(70vh, 720px);
-  margin: 0.4rem 0;
-  aspect-ratio: auto;
-  border-radius: 8px;
+  min-height: 12rem;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ddd4ef;
+  text-align: center;
+  padding: 1rem;
 }
 
 .viewer-caption,
 .memory-date {
-  margin: 0;
+  margin: 0.65rem 0 0;
   color: #e8c98a;
 }
 
@@ -682,19 +782,11 @@ button {
   font-size: 1.35rem;
 }
 
-.polaroid span {
-  display: block;
-  margin-top: 0.45rem;
-  font-size: 1.05rem;
-  line-height: 1.25;
-}
-
-.photo-missing {
-  color: #f6f1ea;
-}
-
-.polaroid .photo-missing {
-  color: #2a2233;
+.memory-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.9rem;
 }
 
 .text-memory,
@@ -936,39 +1028,25 @@ button {
     transform: translate(-50%, -50%);
   }
 
-  .scrapbook {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.1rem 0.9rem;
-  }
-
-  .scrap-item.wide {
-    grid-column: span 2;
-  }
-
-  .scrap-item:nth-child(odd) .polaroid {
-    transform: rotate(-1deg);
-  }
-
-  .scrap-item:nth-child(even) .polaroid {
-    transform: rotate(1deg);
-  }
-
-  .scrap-item:nth-child(3n) .polaroid {
-    transform: rotate(-0.4deg);
-  }
-
-  .polaroid:hover {
-    transform: rotate(0deg) translateY(-3px);
-  }
-}
-
-@media (min-width: 1100px) {
-  .scrapbook {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .constellation-stage {
+    min-height: min(68vh, 38rem);
   }
 }
 
 @media (max-width: 800px) {
+  .constellation-stage {
+    min-height: 22rem;
+  }
+
+  .constellation-star {
+    width: 2.9rem;
+    height: 2.9rem;
+  }
+
+  .music {
+    max-width: calc(100vw - 1.5rem);
+  }
+
   .orbit {
     display: grid;
     height: auto;
